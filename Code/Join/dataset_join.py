@@ -1,14 +1,14 @@
 import pandas as pd
 from pathlib import Path
 
-FLIGHTS_FILE = "flight_data_2024_sample.csv"
+FLIGHTS_FILE = "flight_data_sample.csv"
 WEATHER_FILE = "weather_data_sample.csv"
 MERGED_FILE = "merged_flights.csv"
 
 dir_path = Path(__file__).parent # current
-file_path = dir_path.parent / "Flight_Data" / FLIGHTS_FILE
-weather_path = dir_path.parent / "Weather_data" / WEATHER_FILE
-output_path = dir_path.parent / "Merged_Data" / MERGED_FILE
+file_path = dir_path.parent.parent / "Flight_Data" / FLIGHTS_FILE
+weather_path = dir_path.parent.parent / "Weather_Data" / WEATHER_FILE
+output_path = dir_path.parent.parent / "Merged_Data" / MERGED_FILE
 
 
     
@@ -25,6 +25,7 @@ def standardize_date_city(flights, weather):
 def perform_merge(flights, weather):
     weather["date"] = weather["Date_Time"].dt.date
     flights["date"] = flights["fl_date"].dt.date
+    weather = weather.groupby(["Location", "date"]).first().reset_index()
     merged = flights.merge(
         weather,
         left_on = ["origin_city", "date",],
