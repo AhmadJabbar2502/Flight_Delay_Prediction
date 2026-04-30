@@ -44,20 +44,25 @@ PLOTLY_LAYOUT = dict(
 )
 
 # ── Load Data ─────────────────────────────────────────────────────────────────
-import subprocess
-from pathlib import Path
+
 
 @st.cache_data(show_spinner="Loading merged dataset…")
 def load_data():
-    # Go to project root (flight_Delay_Prediction)
     root = Path(__file__).resolve().parent.parent
 
     merged_path = root / "Merged_Data" / "merged_flights.csv"
     join_script = root / "Code" / "Join" / "dataset_join.py"
 
-    # If merged file doesn't exist → generate it
+    st.write("📁 Root:", root)
+    st.write("📄 Merge script path:", join_script)
+    st.write("📊 Expected merged file:", merged_path)
+
+    st.write("✅ Merge script exists:", join_script.exists())
+    st.write("✅ Merged file exists:", merged_path.exists())
+
+    # Try running script if file missing
     if not merged_path.exists():
-        st.info("🔄 Merged dataset not found. Running data pipeline...")
+        st.warning("⚠️ merged_flights.csv not found. Trying to generate it...")
 
         try:
             result = subprocess.run(
@@ -66,21 +71,24 @@ def load_data():
                 text=True
             )
 
+            st.subheader("🧾 Script Output")
             st.text(result.stdout)
 
             if result.returncode != 0:
-                st.error("❌ Merge script failed")
+                st.error("❌ Script failed")
                 st.code(result.stderr)
                 return None
 
         except Exception as e:
-            st.error(f"❌ Error running merge script: {e}")
+            st.error(f"❌ Exception running script: {e}")
             return None
 
-    # Load dataset
+    # Final check
     if merged_path.exists():
+        st.success("✅ File found. Loading...")
         return pd.read_csv(merged_path, low_memory=False)
 
+    st.error("❌ File still not found after running script")
     return None
 
 df = load_data()
